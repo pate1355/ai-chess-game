@@ -118,7 +118,10 @@ Reply with just the move. For example: ${legalMoves[Math.floor(Math.random() * M
     // Try last 500 chars first (where conclusions are), then last 200 for more precision
     const tail500 = reasoningContent.slice(-500);
     const tail200 = reasoningContent.slice(-200);
-    const lastLine = reasoningContent.split('\n').filter(l => l.trim()).pop() || '';
+    const lastLine = reasoningContent
+      .split('\n')
+      .filter((l: string) => l.trim())
+      .pop() || '';
 
     move =
       extractMove(lastLine, legalMoves) ||

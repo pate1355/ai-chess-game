@@ -1,69 +1,67 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useChessGame } from './hooks/useChessGame';
-import type { GameStatus } from './hooks/useChessGame';
+import React, { useState, useEffect, useCallback } from "react";
+import { useChessGame } from "./hooks/useChessGame";
+import type { GameStatus } from "./hooks/useChessGame";
 import {
   fetchAvailableModels,
   setBaseUrl,
   getBaseUrl,
-} from './services/chessAI';
-import type { Model } from './services/chessAI';
-import ChessBoardWrapper from './components/ChessBoard';
-import PlayerCard from './components/PlayerCard';
-import MoveHistory from './components/MoveHistory';
+} from "./services/chessAI";
+import type { Model } from "./services/chessAI";
+import ChessBoardWrapper from "./components/ChessBoard";
+import PlayerCard from "./components/PlayerCard";
+import MoveHistory from "./components/MoveHistory";
 
 function getStatusMessage(
   status: GameStatus,
-  turn: 'w' | 'b',
+  turn: "w" | "b",
   isCheck: boolean,
-  winner: 'white' | 'black' | 'draw' | null
+  winner: "white" | "black" | "draw" | null,
 ): { text: string; icon: string; className: string } {
-  if (status === 'playing' && isCheck) {
+  if (status === "playing" && isCheck) {
     return {
-      text: `${turn === 'w' ? 'White' : 'Black'} is in check!`,
-      icon: '⚠️',
-      className: 'check',
+      text: `${turn === "w" ? "White" : "Black"} is in check!`,
+      icon: "⚠️",
+      className: "check",
     };
   }
 
   switch (status) {
-    case 'playing':
+    case "playing":
       return {
-        text: `${turn === 'w' ? 'White' : 'Black'} to move`,
-        icon: turn === 'w' ? '♔' : '♚',
-        className: 'playing',
+        text: `${turn === "w" ? "White" : "Black"} to move`,
+        icon: turn === "w" ? "♔" : "♚",
+        className: "playing",
       };
-    case 'paused':
-      return { text: 'Game paused', icon: '⏸️', className: 'playing' };
-    case 'checkmate':
+    case "paused":
+      return { text: "Game paused", icon: "⏸️", className: "playing" };
+    case "checkmate":
       return {
-        text: `Checkmate! ${winner === 'white' ? 'White' : 'Black'} wins!`,
-        icon: '👑',
-        className: 'checkmate',
+        text: `Checkmate! ${winner === "white" ? "White" : "Black"} wins!`,
+        icon: "👑",
+        className: "checkmate",
       };
-    case 'stalemate':
-      return { text: 'Stalemate — Draw!', icon: '🤝', className: 'stalemate' };
-    case 'draw':
-      return { text: 'Game drawn', icon: '🤝', className: 'draw' };
-    case 'forfeit':
+    case "stalemate":
+      return { text: "Stalemate — Draw!", icon: "🤝", className: "stalemate" };
+    case "draw":
+      return { text: "Game drawn", icon: "🤝", className: "draw" };
+    case "forfeit":
       return {
-        text: `${winner === 'white' ? 'White' : 'Black'} wins by forfeit`,
-        icon: '🏳️',
-        className: 'forfeit',
+        text: `${winner === "white" ? "White" : "Black"} wins by forfeit`,
+        icon: "🏳️",
+        className: "forfeit",
       };
-    case 'error':
-      return { text: 'Error occurred', icon: '❌', className: 'error' };
     default:
-      return { text: '', icon: '', className: '' };
+      return { text: "", icon: "", className: "" };
   }
 }
 
 function getPlayerResult(
-  color: 'white' | 'black',
-  winner: 'white' | 'black' | 'draw' | null
-): 'win' | 'loss' | 'draw' | null {
+  color: "white" | "black",
+  winner: "white" | "black" | "draw" | null,
+): "win" | "loss" | "draw" | null {
   if (!winner) return null;
-  if (winner === 'draw') return 'draw';
-  return winner === color ? 'win' : 'loss';
+  if (winner === "draw") return "draw";
+  return winner === color ? "win" : "loss";
 }
 
 const App: React.FC = () => {
@@ -82,22 +80,20 @@ const App: React.FC = () => {
   } = useChessGame();
 
   const [models, setModels] = useState<Model[]>([]);
-  const [serverUrl, setServerUrl] = useState(
-    getBaseUrl().replace('/v1', '')
-  );
+  const [serverUrl, setServerUrl] = useState(getBaseUrl().replace("/v1", ""));
   const [connectionStatus, setConnectionStatus] = useState<
-    'idle' | 'loading' | 'connected' | 'error'
-  >('idle');
-  const [connectionError, setConnectionError] = useState('');
+    "idle" | "loading" | "connected" | "error"
+  >("idle");
+  const [connectionError, setConnectionError] = useState("");
   const [showWinnerOverlay, setShowWinnerOverlay] = useState(false);
 
   // Show winner overlay when game ends
   useEffect(() => {
     if (
-      gameState.status === 'checkmate' ||
-      gameState.status === 'stalemate' ||
-      gameState.status === 'draw' ||
-      gameState.status === 'forfeit'
+      gameState.status === "checkmate" ||
+      gameState.status === "stalemate" ||
+      gameState.status === "draw" ||
+      gameState.status === "forfeit"
     ) {
       const timer = setTimeout(() => setShowWinnerOverlay(true), 800);
       return () => clearTimeout(timer);
@@ -107,13 +103,13 @@ const App: React.FC = () => {
   }, [gameState.status]);
 
   const handleConnect = useCallback(async () => {
-    setConnectionStatus('loading');
-    setConnectionError('');
+    setConnectionStatus("loading");
+    setConnectionError("");
     try {
       setBaseUrl(serverUrl);
       const fetchedModels = await fetchAvailableModels();
       setModels(fetchedModels);
-      setConnectionStatus('connected');
+      setConnectionStatus("connected");
 
       // Auto-select if exactly 2 models
       if (fetchedModels.length >= 1 && !whiteModel) {
@@ -123,9 +119,9 @@ const App: React.FC = () => {
         setBlackModel(fetchedModels[1].id);
       }
     } catch (err) {
-      setConnectionStatus('error');
+      setConnectionStatus("error");
       setConnectionError(
-        err instanceof Error ? err.message : 'Connection failed'
+        err instanceof Error ? err.message : "Connection failed",
       );
     }
   }, [serverUrl, whiteModel, blackModel, setWhiteModel, setBlackModel]);
@@ -137,26 +133,25 @@ const App: React.FC = () => {
   }, []);
 
   const isGameActive =
-    gameState.status === 'playing' || gameState.status === 'paused';
+    gameState.status === "playing" || gameState.status === "paused";
   const isGameOver =
-    gameState.status === 'checkmate' ||
-    gameState.status === 'stalemate' ||
-    gameState.status === 'draw' ||
-    gameState.status === 'forfeit';
-  const canStart =
-    connectionStatus === 'connected' && whiteModel && blackModel;
+    gameState.status === "checkmate" ||
+    gameState.status === "stalemate" ||
+    gameState.status === "draw" ||
+    gameState.status === "forfeit";
+  const canStart = connectionStatus === "connected" && whiteModel && blackModel;
 
   const statusInfo = getStatusMessage(
     gameState.status,
     gameState.turn,
     gameState.isCheck,
-    gameState.winner
+    gameState.winner,
   );
 
   // ================================================================
   // RENDER — Setup Screen
   // ================================================================
-  if (gameState.status === 'idle') {
+  if (gameState.status === "idle") {
     return (
       <div className="app">
         <header className="app-header">
@@ -190,47 +185,47 @@ const App: React.FC = () => {
                 <button
                   className="btn btn-secondary btn-sm"
                   onClick={handleConnect}
-                  disabled={connectionStatus === 'loading'}
+                  disabled={connectionStatus === "loading"}
                 >
-                  {connectionStatus === 'loading' ? (
+                  {connectionStatus === "loading" ? (
                     <span className="spinner" />
                   ) : (
-                    'Connect'
+                    "Connect"
                   )}
                 </button>
               </div>
             </div>
 
             {/* Connection Status */}
-            {connectionStatus !== 'idle' && (
+            {connectionStatus !== "idle" && (
               <div
                 className={`connection-status ${
-                  connectionStatus === 'connected'
-                    ? 'success'
-                    : connectionStatus === 'error'
-                      ? 'error'
-                      : 'loading'
+                  connectionStatus === "connected"
+                    ? "success"
+                    : connectionStatus === "error"
+                      ? "error"
+                      : "loading"
                 }`}
               >
                 <span
                   className={`status-dot ${
-                    connectionStatus === 'connected'
-                      ? 'success'
-                      : connectionStatus === 'error'
-                        ? 'error'
-                        : 'loading'
+                    connectionStatus === "connected"
+                      ? "success"
+                      : connectionStatus === "error"
+                        ? "error"
+                        : "loading"
                   }`}
                 />
-                {connectionStatus === 'connected'
-                  ? `Connected — ${models.length} model${models.length !== 1 ? 's' : ''} available`
-                  : connectionStatus === 'error'
+                {connectionStatus === "connected"
+                  ? `Connected — ${models.length} model${models.length !== 1 ? "s" : ""} available`
+                  : connectionStatus === "error"
                     ? connectionError
-                    : 'Connecting…'}
+                    : "Connecting…"}
               </div>
             )}
 
             {/* Model Selection */}
-            {connectionStatus === 'connected' && models.length > 0 && (
+            {connectionStatus === "connected" && models.length > 0 && (
               <>
                 <div className="setup-section">
                   <label>
@@ -299,7 +294,7 @@ const App: React.FC = () => {
               </>
             )}
 
-            {connectionStatus === 'connected' && models.length === 0 && (
+            {connectionStatus === "connected" && models.length === 0 && (
               <div className="connection-status error">
                 <span className="status-dot error" />
                 No models loaded in LM Studio. Please load at least one model.
@@ -329,38 +324,41 @@ const App: React.FC = () => {
           <PlayerCard
             color="white"
             modelName={whiteModel}
-            isThinking={gameState.thinking === 'white'}
-            isActive={gameState.turn === 'w' && gameState.status === 'playing'}
+            isThinking={gameState.thinking === "white"}
+            isActive={gameState.turn === "w" && gameState.status === "playing"}
             capturedPieces={gameState.capturedPieces.white}
-            result={getPlayerResult('white', gameState.winner)}
+            result={getPlayerResult("white", gameState.winner)}
           />
 
           {/* Game Controls below white player */}
           <div
             style={{
-              marginTop: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
+              marginTop: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
             }}
           >
             {isGameActive && (
               <>
-                {gameState.status === 'playing' ? (
-                  <button className="btn btn-secondary btn-full" onClick={pauseGame}>
+                {gameState.status === "playing" ? (
+                  <button
+                    className="btn btn-secondary btn-full"
+                    onClick={pauseGame}
+                  >
                     ⏸️ Pause
                   </button>
                 ) : (
-                  <button className="btn btn-primary btn-full" onClick={resumeGame}>
+                  <button
+                    className="btn btn-primary btn-full"
+                    onClick={resumeGame}
+                  >
                     ▶️ Resume
                   </button>
                 )}
               </>
             )}
-            <button
-              className="btn btn-danger btn-full"
-              onClick={resetGame}
-            >
+            <button className="btn btn-danger btn-full" onClick={resetGame}>
               🔄 New Game
             </button>
 
@@ -405,9 +403,7 @@ const App: React.FC = () => {
 
           {/* Move counter */}
           <div className="game-controls-bar">
-            <span className="move-counter">
-              Move {gameState.moveCount}
-            </span>
+            <span className="move-counter">Move {gameState.moveCount}</span>
           </div>
 
           {/* Error detail */}
@@ -421,10 +417,10 @@ const App: React.FC = () => {
           <PlayerCard
             color="black"
             modelName={blackModel}
-            isThinking={gameState.thinking === 'black'}
-            isActive={gameState.turn === 'b' && gameState.status === 'playing'}
+            isThinking={gameState.thinking === "black"}
+            isActive={gameState.turn === "b" && gameState.status === "playing"}
             capturedPieces={gameState.capturedPieces.black}
-            result={getPlayerResult('black', gameState.winner)}
+            result={getPlayerResult("black", gameState.winner)}
           />
 
           <MoveHistory moves={gameState.moveHistory} />
@@ -442,25 +438,26 @@ const App: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="trophy">
-              {gameState.winner === 'draw' ? '🤝' : '🏆'}
+              {gameState.winner === "draw" ? "🤝" : "🏆"}
             </div>
             <h2 className="gradient-text">
-              {gameState.winner === 'draw'
-                ? 'It\'s a Draw!'
-                : `${gameState.winner === 'white' ? 'White' : 'Black'} Wins!`}
+              {gameState.winner === "draw"
+                ? "It's a Draw!"
+                : `${gameState.winner === "white" ? "White" : "Black"} Wins!`}
             </h2>
             <p className="winner-model">
-              {gameState.winner === 'draw'
-                ? 'Both models fought to a standstill'
-                : gameState.winner === 'white'
+              {gameState.winner === "draw"
+                ? "Both models fought to a standstill"
+                : gameState.winner === "white"
                   ? whiteModel
                   : blackModel}
             </p>
             <p className="winner-method">
-              {gameState.status === 'checkmate' && 'by Checkmate'}
-              {gameState.status === 'stalemate' && 'Stalemate'}
-              {gameState.status === 'draw' && 'Draw by repetition / insufficient material'}
-              {gameState.status === 'forfeit' && 'by Forfeit (illegal move)'}
+              {gameState.status === "checkmate" && "by Checkmate"}
+              {gameState.status === "stalemate" && "Stalemate"}
+              {gameState.status === "draw" &&
+                "Draw by repetition / insufficient material"}
+              {gameState.status === "forfeit" && "by Forfeit (illegal move)"}
             </p>
             <p className="winner-method">
               {gameState.moveHistory.length} moves played
@@ -468,7 +465,7 @@ const App: React.FC = () => {
             <button
               className="btn btn-primary"
               onClick={resetGame}
-              style={{ marginTop: '8px' }}
+              style={{ marginTop: "8px" }}
             >
               🔄 Play Again
             </button>
