@@ -110,7 +110,7 @@ export function useChessGame() {
   }, []);
 
   // ─── Core: request one move ───────────────────────────────────────
-  const requestMove = useCallback(async () => {
+  const requestMove = useCallback(async function requestMove() {
     const game = gameRef.current;
 
     if (!playingRef.current || game.isGameOver()) return;
